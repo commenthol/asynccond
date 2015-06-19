@@ -10,7 +10,11 @@
 
 	var
 		M = {}, // define the module
-		moduleName = 'asyncexit'; // the name of the module
+		moduleName = 'asynccond'; // the name of the module
+
+    var _isArray = Array.isArray || function (obj) {
+        return _toString.call(obj) === '[object Array]';
+    };
 
 	function _toArray(obj) {
 		var res = {
@@ -18,8 +22,10 @@
 			vals: []
 		};
 		for (var key in obj) {
-			res.keys.push(key);
-			res.vals.push(obj[key]);
+			if (obj.hasOwnProperty(key)) {
+				res.keys.push(key);
+				res.vals.push(obj[key]);
+			}
 		}
 		return res;
 	}
@@ -84,7 +90,7 @@
 			keys,
 			results = [];
 
-		if (!Array.isArray(tasks) &&  typeof(tasks) === 'object') {
+		if (!_isArray(tasks) &&  typeof(tasks) === 'object') {
 			keys = _toArray(tasks);
 			tasks = keys.vals;
 			keys = keys.keys;
@@ -167,7 +173,7 @@
 		var tasks = [].slice.call(arguments);
 
 		if (tasks.length === 1) {
-			if (Array.isArray(tasks[0])) {
+			if (_isArray(tasks[0])) {
 				tasks = tasks[0];
 			}
 			else if (typeof tasks[0] === 'object') {

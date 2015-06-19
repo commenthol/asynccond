@@ -1,6 +1,6 @@
 {
   "name": "asynccond",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "async series with conditional exit",
   "main": "index.js",
   "engines": {
