@@ -6,10 +6,11 @@
 'use strict';
 
 var assert = require('assert');
-var seq = require('../index.js').seq;
+var seq    = require('../index.js').seq;
 var series = require('../index.js').series;
+var eachSeries = require('../index.js').eachSeries;
 
-/* globals describe, it */ ///< used for jshint
+/* globals describe, it */
 
 // test helper
 function step(data, cb) {
@@ -26,6 +27,62 @@ step.neverReach = function(data, cb) {
 	assert.ok(true, 'Should not reach here');
 	this.next(data, cb);
 };
+
+describe('#eachSeries', function(){
+
+	it('can process an async function in series ', function(done){
+
+		eachSeries([ 1, 2, 3, 4 ],
+			function (data, cb) {
+				process.nextTick(function(){
+					cb(null, data * 2);
+				});
+			},
+			function(err, data){
+				assert.ok(!err, ''+err);
+				assert.deepEqual(data, [ 2, 4, 6, 8 ]);
+				done();
+			}
+		);
+	});
+
+	it('can exit on err', function(done){
+		var i = 0;
+
+		eachSeries([ 1, 2, 3, 4 ],
+			function (data, cb) {
+				var err;
+				if (++i >= 2) {
+					err = 'err';
+				}
+				process.nextTick(function(){
+					cb(err, data * 2);
+				});
+			},
+			function(err, data){
+				assert.ok(err, ''+err);
+				assert.deepEqual(data, [ 2, 4 ]);
+				done();
+			}
+		);
+	});
+
+	it('can pre-exit on condition', function(done){
+		eachSeries([ 1, 2, 3, 4 ],
+			function (data, cb) {
+				process.nextTick(function(){
+					cb(null, data * 2, (data * 2 > 5));
+				});
+			},
+			function(err, data){
+				assert.ok(!err, ''+err);
+				assert.deepEqual(data, [ 2, 4, 6 ]);
+				done();
+			}
+		);
+	});
+
+});
 
 describe('#series', function(){
 
@@ -92,7 +149,7 @@ describe('#series', function(){
 		});
 	});
 
-	it('can process async function in series with pre-exit', function(done){
+	it('can pre-exit on condition', function(done){
 		var data = 0
 
 		function _step(cb) {
@@ -222,7 +279,7 @@ describe('#seq', function(){
 		});
 	});
 
-	it('can pre-exit', function(done){
+	it('can pre-exit on condition', function(done){
 		seq(
 			step,
 			step,

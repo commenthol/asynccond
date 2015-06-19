@@ -12,9 +12,11 @@
 		M = {}, // define the module
 		moduleName = 'asynccond'; // the name of the module
 
-    var _isArray = Array.isArray || function (obj) {
-        return _toString.call(obj) === '[object Array]';
-    };
+	var _isArray = Array.isArray || function (obj) {
+		return _toString.call(obj) === '[object Array]';
+	};
+
+	function noop (){};
 
 	function _toArray(obj) {
 		var res = {
@@ -43,6 +45,66 @@
 			return results;
 		}
 	}
+
+	/**
+	 * Applies the function `iterator` to each item in `arr` in series.
+	 * The `iterator` is called with an item from `arr`, and a callback
+	 * when it has finished. If the `iterator` passes an error to its
+	 * callback, the main `callback` is immediately called with the error.
+	 *
+	 * If a condition is applied on the internal callback of `iterator`,
+	 * it pre-exits the series.
+	 *
+	 * #### Example
+	 *
+	 * ````js
+	 * eachSeries(
+	 *   [ 1, 2, 3, 4, 5 ],
+	 *   // iterator
+	 *   function (data, cb) {
+	 *     cb(null, data * 2, (data * 2 > 5)); // exits if condition is met
+	 *   },
+	 *   // callback
+	 *   function(err, data){
+	 *     //> data = [ 2, 4, 6 ]);
+	 *   }
+	 * );
+	 * ````
+	 *
+	 *
+	 * @param {Array} arr - array of items which are passed to `iterator`
+	 * @param {Function} iterator - `function(item, cb)` `cb` needs to be called inside `iterator`
+	 * @param {Function} [callback] - is of type `function(err, result)` and called after running the series
+	 */
+	function eachSeries(arr, iterator, callback) {
+		var i = 0,
+			results = [];
+
+		callback = callback || noop;
+
+		function cb(err, res, exit){
+			results.push(res);
+			if (err || exit) {
+				return callback(err, results);
+			}
+			else {
+				run();
+			}
+		}
+
+		function run() {
+			var a = arr[i++];
+			if (a) {
+				iterator(a, cb);
+			}
+			else {
+				return callback(null, results);
+			}
+		}
+
+		run();
+	}
+	M.eachSeries = eachSeries;
 
 	/**
 	 * Run the functions in the `tasks` array in series, each one running
@@ -83,12 +145,14 @@
 	 *
 	 *
 	 * @param {Array|Object} tasks - the async functions to run in series
-	 * @param {Function} callback - is of type `function(err, result)` and called after running the series
+	 * @param {Function} [callback] - is of type `function(err, result)` and called after running the series
 	 */
 	function series(tasks, callback) {
 		var i = 0,
 			keys,
 			results = [];
+
+		callback = callback || noop;
 
 		if (!_isArray(tasks) &&  typeof(tasks) === 'object') {
 			keys = _toArray(tasks);
@@ -209,7 +273,7 @@
 		}
 
 		return function(data, _callback) {
-			callback = _callback;
+			callback = _callback || noop;
 			i = 0;
 			run(null, data);
 		};

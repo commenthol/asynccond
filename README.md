@@ -5,9 +5,11 @@
 [![NPM version](https://badge.fury.io/js/asynccond.svg)](https://www.npmjs.com/package/asynccond/)
 [![Build Status](https://secure.travis-ci.org/commenthol/asynccond.svg?branch=master)](https://travis-ci.org/commenthol/asynccond)
 
-Execute async functions in series with the ability to conditionally pre-exit the sequence.
+Async series functions with the ability to conditionally pre-exit the sequence.
 
 `seq` furthermore allows to trap errors within the sequence.
+
+The functions provided are backwards compatible with [async][].
 
 
 ## Table of Contents
@@ -15,6 +17,7 @@ Execute async functions in series with the ability to conditionally pre-exit the
 <!-- !toc (minlevel=2 omit="Table of Contents") -->
 
 * [Description](#description)
+  * [eachSeries(arr, iterator, callback)](#eachseriesarr-iterator-callback)
   * [series(tasks, callback)](#seriestasks-callback)
   * [seq(tasks)](#seqtasks)
 * [Contribution and License Agreement](#contribution-and-license-agreement)
@@ -24,6 +27,42 @@ Execute async functions in series with the ability to conditionally pre-exit the
 <!-- toc! -->
 
 ## Description
+
+### eachSeries(arr, iterator, callback)
+
+Applies the function `iterator` to each item in `arr` in series.
+The `iterator` is called with an item from `arr`, and a callback
+when it has finished. If the `iterator` passes an error to its
+callback, the main `callback` is immediately called with the error.
+
+If a condition is applied on the internal callback of `iterator`,
+it pre-exits the series.
+
+#### Example
+
+````js
+eachSeries(
+  [ 1, 2, 3, 4, 5 ],
+  // iterator
+  function (data, cb) {
+    cb(null, data * 2, (data * 2 > 5)); // exits if condition is met
+  },
+  // callback
+  function(err, data){
+    //> data = [ 2, 4, 6 ]);
+  }
+);
+````
+
+**Parameters**
+
+**arr**: `Array`, array of items which are passed to `iterator`
+
+**iterator**: `function`, `function(item, cb)` `cb` needs to be called inside `iterator`
+
+**callback**: `function`, is of type `function(err, result)` and called after running the series
+
+
 
 ### series(tasks, callback)
 
@@ -139,12 +178,13 @@ See [LICENSE][] for more info.
 
 <!-- !ref -->
 
+* [async][async]
 * [LICENSE][LICENSE]
 
 <!-- ref! -->
 
 [LICENSE]: ./LICENSE
-
+[async]: https://github.com/caolan/async
 
 
 
