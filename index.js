@@ -52,8 +52,8 @@
 	 * when it has finished. If the `iterator` passes an error to its
 	 * callback, the main `callback` is immediately called with the error.
 	 *
-	 * If a condition is applied on the internal callback of `iterator`,
-	 * it pre-exits the series.
+	 * If a `true` condition is applied as third argument on the internal
+	 * callback of `iterator`, it immediately pre-exits the series.
 	 *
 	 * #### Example
 	 *
@@ -62,11 +62,11 @@
 	 *   [ 1, 2, 3, 4, 5 ],
 	 *   // iterator
 	 *   function (data, cb) {
-	 *     cb(null, data * 2, (data * 2 > 5)); // exits if condition is met
+	 *     cb(null, data * 2, (data*2 >5)); // exits if condition is met
 	 *   },
 	 *   // callback
 	 *   function(err, data){
-	 *     //> data = [ 2, 4, 6 ]);
+	 *     //> data = [ 2, 4, 6 ]
 	 *   }
 	 * );
 	 * ````
@@ -120,7 +120,8 @@
 	 * array. This can be a more readable way of handling results from
 	 * series.
 	 *
-	 * The series can be exited immediately on any internal callback.
+	 * If a `true` condition is applied as third argument on the internal
+	 * callback of `iterator`, it immediately pre-exits the series.
 	 *
 	 * #### Example
 	 *
@@ -191,6 +192,9 @@
 	 * Each function is executed with the this binding of the composed
 	 * function.
 	 *
+	 * If a `true` condition is applied as third argument on the internal
+	 * callback of an async function, it immediately pre-exits the series.
+	 *
 	 * #### Example
 	 *
 	 * ````js
@@ -202,13 +206,14 @@
 	 *     cb(null, data+1);
 	 *   },
 	 *   function(data, cb) {
-	 *     cb('err', data+1); // causes an error --> will execute the next function with arity = 3
+	 *     cb('err', data+1); // causes an error -->
+	 *                        // will execute the next function with arity = 3
 	 *   },
 	 *   function(data, cb) {
 	 *     cb(null, data+1);  // jumps over here (remind the previous error)
 	 *   },
-	 *   function(err, data, cb) { // the error trap (arity = 3) is only called if there is an error
-	 *     cb(null, data+10);
+	 *   function(err, data, cb) { // the error trap (arity = 3)
+	 *     cb(null, data+10);      // is only called if there is an error
 	 *   },
 	 *   function(data, cb) {
 	 *     cb(null, data+1, (data > 10)); // exits list immediately if data>10
